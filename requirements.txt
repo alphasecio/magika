@@ -1,0 +1,2 @@
+streamlit==1.31.1
+magika==0.5.0
