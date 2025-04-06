@@ -1,7 +1,8 @@
-import os, tempfile, streamlit as st
+import os, tempfile
+import magika, streamlit as st
 from pathlib import Path
-from magika import Magika
-magika = Magika()
+
+m = magika.Magika()
 
 # Streamlit app
 st.subheader("Magika content-type scanner")
@@ -14,9 +15,19 @@ else:
     # Save uploaded file temporarily to disk, pass the file path to Magika, delete the temp file
     with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
         tmp_file.write(source_file.read())
-    result = magika.identify_path(Path(tmp_file.name))
-    confidence = "{:.2f}%".format(result.output.score * 100)
-    st.success(f"File type: {result.output.ct_label}\n\nDescription: {result.output.magic}\n\nConfidence: {confidence}")
-    os.remove(tmp_file.name)
+    result = m.identify_path(Path(tmp_file.name))
+
+    if result.ok:
+        confidence = "{:.2f}%".format(result.score * 100)
+        st.success(
+            f"**File name**: {source_file.name}\n\n"
+            f"**File type**: {result.output.label}\n\n"
+            f"**Description**: {result.output.description}\n\n"
+            f"**Confidence**: {confidence}")
+    else:
+        st.error(f"Magika failed with status: {result.status}")
   except Exception as e:
-    st.exception(f"An error occurred: {e}")
+      st.exception(f"An error occurred: {e}")
+  
+  finally:
+      os.remove(tmp_file.name)
